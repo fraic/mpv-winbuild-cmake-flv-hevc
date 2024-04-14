@@ -1,0 +1,65 @@
+From 711a64f7e23e897923128cde0f2000ba5649ed60 Mon Sep 17 00:00:00 2001
+From: fraic <frmzero@hotmail.com>
+Date: Fri, 12 Jan 2024 18:42:17 +0800
+Subject: [PATCH] hevc for rtmp
+
+---
+ libavformat/flv.h    | 1 +
+ libavformat/flvdec.c | 9 ++++++++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/libavformat/flv.h b/libavformat/flv.h
+index f710963b92..e6225e7642 100644
+--- a/libavformat/flv.h
++++ b/libavformat/flv.h
+@@ -116,6 +116,7 @@ enum {
+     FLV_CODECID_H264    = 7,
+     FLV_CODECID_REALH263= 8,
+     FLV_CODECID_MPEG4   = 9,
++    FLV_CODECID_HEVC   = 12,
+ };
+ 
+ enum {
+diff --git a/libavformat/flvdec.c b/libavformat/flvdec.c
+index 639a9f84d9..ebd1d78df2 100644
+--- a/libavformat/flvdec.c
++++ b/libavformat/flvdec.c
+@@ -38,6 +38,7 @@
+ #include "demux.h"
+ #include "internal.h"
+ #include "flv.h"
++#include "hevc.h"
+ 
+ #define VALIDATE_INDEX_TS_THRESH 2500
+ 
+@@ -327,6 +328,8 @@ static int flv_same_video_codec(AVCodecParameters *vpar, uint32_t flv_codecid)
+         return vpar->codec_id == AV_CODEC_ID_VP6A;
+     case FLV_CODECID_H264:
+         return vpar->codec_id == AV_CODEC_ID_H264;
++    case FLV_CODECID_HEVC:
++        return vpar->codec_id == AV_CODEC_ID_HEVC;
+     default:
+         return vpar->codec_tag == flv_codecid;
+     }
+@@ -388,6 +391,10 @@ static int flv_set_video_codec(AVFormatContext *s, AVStream *vstream,
+     case FLV_CODECID_MPEG4:
+         par->codec_id = AV_CODEC_ID_MPEG4;
+         break;
++    case FLV_CODECID_HEVC:
++        par->codec_id = AV_CODEC_ID_HEVC;
++        vstreami->need_parsing = AVSTREAM_PARSE_NONE;
++        break;
+     default:
+         avpriv_request_sample(s, "Video codec (%x)", flv_codecid);
+         par->codec_tag = flv_codecid;
+@@ -1288,7 +1295,7 @@ retry_duration:
+         }
+ 
+         if (st->codecpar->codec_id == AV_CODEC_ID_H264 || st->codecpar->codec_id == AV_CODEC_ID_MPEG4 ||
+-            (st->codecpar->codec_id == AV_CODEC_ID_HEVC && type == PacketTypeCodedFrames)) {
++            st->codecpar->codec_id == AV_CODEC_ID_HEVC) {
+             // sign extension
+             int32_t cts = (avio_rb24(s->pb) + 0xff800000) ^ 0xff800000;
+             pts = av_sat_add64(dts, cts);
+-- 
+2.41.0.windows.3
