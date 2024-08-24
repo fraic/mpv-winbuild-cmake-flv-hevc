@@ -1,9 +1,7 @@
-ExternalProject_Add(avisynth-headers
-    GIT_REPOSITORY https://github.com/AviSynth/AviSynthPlus.git
+ExternalProject_Add(svtav1
+    GIT_REPOSITORY https://gitlab.com/AOMediaCodec/SVT-AV1.git
     SOURCE_DIR ${SOURCE_LOCATION}
-    GIT_CLONE_FLAGS "--sparse --filter=tree:0"
-    GIT_CLONE_POST_COMMAND "sparse-checkout set --no-cone /* !distrib"
-    GIT_SUBMODULES ""
+    GIT_CLONE_FLAGS "--filter=tree:0"
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ${EXEC} CONF=1 cmake -H<SOURCE_DIR> -B<BINARY_DIR>
         -G Ninja
@@ -12,10 +10,15 @@ ExternalProject_Add(avisynth-headers
         -DCMAKE_INSTALL_PREFIX=${MINGW_INSTALL_PREFIX}
         -DCMAKE_FIND_ROOT_PATH=${MINGW_INSTALL_PREFIX}
         -DBUILD_SHARED_LIBS=OFF
-        -DHEADERS_ONLY=ON
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR> VersionGen
+        -DENABLE_AVX512=ON
+        -DBUILD_TESTING=OFF
+        -DBUILD_ENC=ON
+        -DSVT_AV1_LTO=OFF
+        -DBUILD_APPS=OFF
+    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
     INSTALL_COMMAND ${EXEC} ninja -C <BINARY_DIR> install
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
-force_rebuild_git(avisynth-headers)
-cleanup(avisynth-headers install)
+
+force_rebuild_git(svtav1)
+cleanup(svtav1 install)
